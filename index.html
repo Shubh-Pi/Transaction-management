@@ -5,12 +5,12 @@
   <title>Transaction Manager</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Basic styling for a clean, responsive layout */
+    /* Basic styling */
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
     .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     h1, h2 { text-align: center; }
     form { display: flex; flex-direction: column; margin-bottom: 20px; }
-    form input, form select, form button { padding: 10px; margin: 5px 0; font-size: 1em; }
+    form select, form input, form button { padding: 10px; margin: 5px 0; font-size: 1em; }
     .transactions { margin-top: 20px; }
     .transaction { border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
     .transaction:last-child { border-bottom: none; }
@@ -25,6 +25,11 @@
         <option value="payment">Payment to Shop Owner</option>
         <option value="print">Print Usage</option>
       </select>
+      <select id="person-name" style="display: none;">
+        <option value="Friend 1">Friend 1</option>
+        <option value="Friend 2">Friend 2</option>
+        <option value="Friend 3">Friend 3</option>
+      </select>
       <input type="number" id="amount" placeholder="Amount" required step="0.01">
       <input type="text" id="description" placeholder="Description">
       <button type="submit">Add Transaction</button>
@@ -38,26 +43,21 @@
   </div>
   
   <script>
-    // Select DOM elements
     const form = document.getElementById('transaction-form');
     const balanceEl = document.getElementById('balance');
     const transactionListEl = document.getElementById('transaction-list');
-    
-    // Load stored transactions from localStorage (or initialize an empty array)
+    const transactionTypeEl = document.getElementById('transaction-type');
+    const personNameEl = document.getElementById('person-name');
+
     let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-    
-    // Save transactions to localStorage
+
     function saveTransactions() {
       localStorage.setItem('transactions', JSON.stringify(transactions));
     }
-    
-    // Calculate the current balance
+
     function calculateBalance() {
       let balance = 0;
       transactions.forEach(tx => {
-        // For this example:
-        // - A "payment" (money paid to the shop owner) reduces your balance.
-        // - A "print" (money you collect from printouts) increases your balance.
         if (tx.type === 'payment') {
           balance -= Number(tx.amount);
         } else if (tx.type === 'print') {
@@ -66,8 +66,7 @@
       });
       return balance;
     }
-    
-    // Render transactions and update the balance display
+
     function renderTransactions() {
       transactionListEl.innerHTML = '';
       transactions.forEach((tx, index) => {
@@ -75,7 +74,8 @@
         txDiv.classList.add('transaction');
         txDiv.innerHTML = `
           <div>
-            <strong>${tx.type === 'payment' ? 'Payment' : 'Print'}</strong>: $${Number(tx.amount).toFixed(2)}
+            <strong>${tx.type === 'payment' ? 'Payment' : `Print by ${tx.person}`}</strong>: 
+            $${Number(tx.amount).toFixed(2)}
             <br>
             <small>${tx.description || ''}</small>
           </div>
@@ -85,32 +85,42 @@
       });
       balanceEl.textContent = calculateBalance().toFixed(2);
     }
-    
-    // Add new transaction
+
     form.addEventListener('submit', function(e) {
       e.preventDefault();
-      const type = document.getElementById('transaction-type').value;
+      const type = transactionTypeEl.value;
       const amount = document.getElementById('amount').value;
       const description = document.getElementById('description').value;
-      
-      transactions.push({ type, amount, description, date: new Date().toISOString() });
+      let person = "";
+
+      if (type === 'print') {
+        person = personNameEl.value;
+      }
+
+      transactions.push({ type, amount, description, person, date: new Date().toISOString() });
       saveTransactions();
       renderTransactions();
       form.reset();
+      personNameEl.style.display = "none";
     });
-    
-    // Delete transaction by index
+
     function deleteTransaction(e) {
       const index = e.target.getAttribute('data-index');
       transactions.splice(index, 1);
       saveTransactions();
       renderTransactions();
     }
-    
-    // Expose deleteTransaction to the global scope
+
+    transactionTypeEl.addEventListener('change', function () {
+      if (transactionTypeEl.value === 'print') {
+        personNameEl.style.display = "block";
+      } else {
+        personNameEl.style.display = "none";
+      }
+    });
+
     window.deleteTransaction = deleteTransaction;
-    
-    // Render transactions on page load
+
     renderTransactions();
   </script>
 </body>
