@@ -2,62 +2,140 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Transaction Manager</title>
+  <title>Multi-Person Transaction Manager</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Basic styling */
+    /* Basic styling for the app */
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
     .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     h1, h2 { text-align: center; }
     form { display: flex; flex-direction: column; margin-bottom: 20px; }
-    form select, form input, form button { padding: 10px; margin: 5px 0; font-size: 1em; }
+    form input, form select, form button { padding: 10px; margin: 5px 0; font-size: 1em; }
+    .list-item { background: #eee; padding: 10px; margin: 5px 0; cursor: pointer; border-radius: 4px; }
+    .list-item:hover { background: #ddd; }
     .transactions { margin-top: 20px; }
     .transaction { border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
     .transaction:last-child { border-bottom: none; }
     .transaction button { padding: 5px 10px; }
+    .hidden { display: none; }
+    .back-btn { margin-bottom: 20px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Transaction Manager</h1>
-    <form id="transaction-form">
-      <select id="transaction-type">
-        <option value="payment">Payment to Shop Owner</option>
-        <option value="print">Print Usage</option>
-      </select>
-      <select id="person-name" style="display: none;">
-        <option value="Friend 1">Friend 1</option>
-        <option value="Friend 2">Friend 2</option>
-        <option value="Friend 3">Friend 3</option>
-      </select>
-      <input type="number" id="amount" placeholder="Amount" required step="0.01">
-      <input type="text" id="description" placeholder="Description">
-      <button type="submit">Add Transaction</button>
-    </form>
-    <div>
-      <h2>Current Balance: $<span id="balance">0.00</span></h2>
+    <!-- Person List View -->
+    <div id="person-list-view">
+      <h1>Select a Person</h1>
+      <form id="add-person-form">
+        <input type="text" id="new-person-name" placeholder="Enter new person's name" required>
+        <button type="submit">Add Person</button>
+      </form>
+      <div id="person-list">
+        <!-- List of persons will appear here -->
+      </div>
     </div>
-    <div class="transactions" id="transaction-list">
-      <!-- Transactions will be listed here -->
+
+    <!-- Transaction View -->
+    <div id="transaction-view" class="hidden">
+      <button id="back-to-persons" class="back-btn">← Back to Person List</button>
+      <h1 id="person-heading">Transactions for: </h1>
+      <h2>Current Balance: $<span id="balance">0.00</span></h2>
+      <form id="transaction-form">
+        <select id="transaction-type">
+          <option value="payment">Payment to Shop Owner</option>
+          <option value="print">Print Usage</option>
+        </select>
+        <input type="number" id="amount" placeholder="Amount" required step="0.01">
+        <input type="text" id="description" placeholder="Description">
+        <button type="submit">Add Transaction</button>
+      </form>
+      <div class="transactions" id="transaction-list">
+        <!-- Transactions for this person will be listed here -->
+      </div>
     </div>
   </div>
-  
+
   <script>
-    const form = document.getElementById('transaction-form');
+    // Local Storage keys
+    const PERSONS_KEY = 'persons';
+    const TRANSACTIONS_KEY = 'transactions';
+
+    // Global variables for current data and state
+    let persons = JSON.parse(localStorage.getItem(PERSONS_KEY)) || [];
+    let transactions = JSON.parse(localStorage.getItem(TRANSACTIONS_KEY)) || [];
+    let currentPerson = null; // holds the currently selected person
+
+    // DOM Elements
+    const personListView = document.getElementById('person-list-view');
+    const transactionView = document.getElementById('transaction-view');
+    const personListEl = document.getElementById('person-list');
+    const addPersonForm = document.getElementById('add-person-form');
+    const newPersonNameEl = document.getElementById('new-person-name');
+
+    const backBtn = document.getElementById('back-to-persons');
+    const personHeading = document.getElementById('person-heading');
     const balanceEl = document.getElementById('balance');
     const transactionListEl = document.getElementById('transaction-list');
+    const transactionForm = document.getElementById('transaction-form');
     const transactionTypeEl = document.getElementById('transaction-type');
-    const personNameEl = document.getElementById('person-name');
+    const amountEl = document.getElementById('amount');
+    const descriptionEl = document.getElementById('description');
 
-    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-
+    // Save data to localStorage
+    function savePersons() {
+      localStorage.setItem(PERSONS_KEY, JSON.stringify(persons));
+    }
     function saveTransactions() {
-      localStorage.setItem('transactions', JSON.stringify(transactions));
+      localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
     }
 
-    function calculateBalance() {
+    // Render the list of persons
+    function renderPersonList() {
+      personListEl.innerHTML = '';
+      if (persons.length === 0) {
+        personListEl.innerHTML = "<p>No persons added yet.</p>";
+        return;
+      }
+      persons.forEach(person => {
+        const div = document.createElement('div');
+        div.classList.add('list-item');
+        div.textContent = person.name;
+        div.onclick = () => openTransactionView(person.id);
+        personListEl.appendChild(div);
+      });
+    }
+
+    // Render transactions for the current person (sorted by date: newest first)
+    function renderTransactions() {
+      transactionListEl.innerHTML = '';
+      const personTransactions = transactions.filter(tx => tx.personId === currentPerson.id);
+      
+      // Sort transactions by date in descending order (newest first)
+      personTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      personTransactions.forEach(tx => {
+        const txDiv = document.createElement('div');
+        txDiv.classList.add('transaction');
+        txDiv.innerHTML = `
+          <div>
+            <strong>${tx.type === 'payment' ? 'Payment' : 'Print'}</strong>: $${Number(tx.amount).toFixed(2)}
+            <br>
+            <small>${tx.description || ''}</small>
+            <br>
+            <small>${new Date(tx.date).toLocaleString()}</small>
+          </div>
+          <button data-id="${tx.id}" onclick="deleteTransaction(event)">Delete</button>
+        `;
+        transactionListEl.appendChild(txDiv);
+      });
+      balanceEl.textContent = calculateBalance(personTransactions).toFixed(2);
+    }
+
+    // Calculate balance for a set of transactions
+    function calculateBalance(personTransactions) {
       let balance = 0;
-      transactions.forEach(tx => {
+      personTransactions.forEach(tx => {
+        // Payment reduces balance, Print increases balance
         if (tx.type === 'payment') {
           balance -= Number(tx.amount);
         } else if (tx.type === 'print') {
@@ -67,61 +145,72 @@
       return balance;
     }
 
-    function renderTransactions() {
-      transactionListEl.innerHTML = '';
-      transactions.forEach((tx, index) => {
-        const txDiv = document.createElement('div');
-        txDiv.classList.add('transaction');
-        txDiv.innerHTML = `
-          <div>
-            <strong>${tx.type === 'payment' ? 'Payment' : `Print by ${tx.person}`}</strong>: 
-            $${Number(tx.amount).toFixed(2)}
-            <br>
-            <small>${tx.description || ''}</small>
-          </div>
-          <button data-index="${index}" onclick="deleteTransaction(event)">Delete</button>
-        `;
-        transactionListEl.appendChild(txDiv);
-      });
-      balanceEl.textContent = calculateBalance().toFixed(2);
+    // Open transaction view for a given person (by id)
+    function openTransactionView(personId) {
+      currentPerson = persons.find(p => p.id === personId);
+      personHeading.textContent = `Transactions for: ${currentPerson.name}`;
+      // Hide person list and show transaction view
+      personListView.classList.add('hidden');
+      transactionView.classList.remove('hidden');
+      renderTransactions();
     }
 
-    form.addEventListener('submit', function(e) {
+    // Back to person list view
+    backBtn.addEventListener('click', () => {
+      currentPerson = null;
+      transactionView.classList.add('hidden');
+      personListView.classList.remove('hidden');
+      renderPersonList();
+    });
+
+    // Add new person form submission
+    addPersonForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const type = transactionTypeEl.value;
-      const amount = document.getElementById('amount').value;
-      const description = document.getElementById('description').value;
-      let person = "";
-
-      if (type === 'print') {
-        person = personNameEl.value;
-      }
-
-      transactions.push({ type, amount, description, person, date: new Date().toISOString() });
-      saveTransactions();
-      renderTransactions();
-      form.reset();
-      personNameEl.style.display = "none";
+      const name = newPersonNameEl.value.trim();
+      if (!name) return;
+      // Create a person with a unique id (using timestamp)
+      const person = { id: Date.now().toString(), name };
+      persons.push(person);
+      savePersons();
+      newPersonNameEl.value = '';
+      renderPersonList();
     });
 
+    // Add new transaction for the current person
+    transactionForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!currentPerson) return;
+      const type = transactionTypeEl.value;
+      const amount = amountEl.value;
+      const description = descriptionEl.value;
+      if (!amount) return;
+      // Create a transaction with a unique id
+      const tx = {
+        id: Date.now().toString(),
+        personId: currentPerson.id,
+        type,
+        amount,
+        description,
+        date: new Date().toISOString()
+      };
+      transactions.push(tx);
+      saveTransactions();
+      transactionForm.reset();
+      renderTransactions();
+    });
+
+    // Delete a transaction (by transaction id)
     function deleteTransaction(e) {
-      const index = e.target.getAttribute('data-index');
-      transactions.splice(index, 1);
+      const txId = e.target.getAttribute('data-id');
+      transactions = transactions.filter(tx => tx.id !== txId);
       saveTransactions();
       renderTransactions();
     }
-
-    transactionTypeEl.addEventListener('change', function () {
-      if (transactionTypeEl.value === 'print') {
-        personNameEl.style.display = "block";
-      } else {
-        personNameEl.style.display = "none";
-      }
-    });
-
+    // Expose deleteTransaction globally (for inline onclick)
     window.deleteTransaction = deleteTransaction;
 
-    renderTransactions();
+    // Initial render of person list
+    renderPersonList();
   </script>
 </body>
 </html>
