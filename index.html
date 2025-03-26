@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Transaction Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Basic styling for a clean, responsive layout */
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1, h2 { text-align: center; }
+    form { display: flex; flex-direction: column; margin-bottom: 20px; }
+    form input, form select, form button { padding: 10px; margin: 5px 0; font-size: 1em; }
+    .transactions { margin-top: 20px; }
+    .transaction { border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+    .transaction:last-child { border-bottom: none; }
+    .transaction button { padding: 5px 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Transaction Manager</h1>
+    <form id="transaction-form">
+      <select id="transaction-type">
+        <option value="payment">Payment to Shop Owner</option>
+        <option value="print">Print Usage</option>
+      </select>
+      <input type="number" id="amount" placeholder="Amount" required step="0.01">
+      <input type="text" id="description" placeholder="Description">
+      <button type="submit">Add Transaction</button>
+    </form>
+    <div>
+      <h2>Current Balance: $<span id="balance">0.00</span></h2>
+    </div>
+    <div class="transactions" id="transaction-list">
+      <!-- Transactions will be listed here -->
+    </div>
+  </div>
+  
+  <script>
+    // Select DOM elements
+    const form = document.getElementById('transaction-form');
+    const balanceEl = document.getElementById('balance');
+    const transactionListEl = document.getElementById('transaction-list');
+    
+    // Load stored transactions from localStorage (or initialize an empty array)
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    
+    // Save transactions to localStorage
+    function saveTransactions() {
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+    
+    // Calculate the current balance
+    function calculateBalance() {
+      let balance = 0;
+      transactions.forEach(tx => {
+        // For this example:
+        // - A "payment" (money paid to the shop owner) reduces your balance.
+        // - A "print" (money you collect from printouts) increases your balance.
+        if (tx.type === 'payment') {
+          balance -= Number(tx.amount);
+        } else if (tx.type === 'print') {
+          balance += Number(tx.amount);
+        }
+      });
+      return balance;
+    }
+    
+    // Render transactions and update the balance display
+    function renderTransactions() {
+      transactionListEl.innerHTML = '';
+      transactions.forEach((tx, index) => {
+        const txDiv = document.createElement('div');
+        txDiv.classList.add('transaction');
+        txDiv.innerHTML = `
+          <div>
+            <strong>${tx.type === 'payment' ? 'Payment' : 'Print'}</strong>: $${Number(tx.amount).toFixed(2)}
+            <br>
+            <small>${tx.description || ''}</small>
+          </div>
+          <button data-index="${index}" onclick="deleteTransaction(event)">Delete</button>
+        `;
+        transactionListEl.appendChild(txDiv);
+      });
+      balanceEl.textContent = calculateBalance().toFixed(2);
+    }
+    
+    // Add new transaction
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const type = document.getElementById('transaction-type').value;
+      const amount = document.getElementById('amount').value;
+      const description = document.getElementById('description').value;
+      
+      transactions.push({ type, amount, description, date: new Date().toISOString() });
+      saveTransactions();
+      renderTransactions();
+      form.reset();
+    });
+    
+    // Delete transaction by index
+    function deleteTransaction(e) {
+      const index = e.target.getAttribute('data-index');
+      transactions.splice(index, 1);
+      saveTransactions();
+      renderTransactions();
+    }
+    
+    // Expose deleteTransaction to the global scope
+    window.deleteTransaction = deleteTransaction;
+    
+    // Render transactions on page load
+    renderTransactions();
+  </script>
+</body>
+</html>
