@@ -4,41 +4,41 @@
   <meta charset="UTF-8">
   <title>Multi-Person Transaction Manager</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    /* Basic styling for the app */
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
-    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h1, h2 { text-align: center; }
-    form { display: flex; flex-direction: column; margin-bottom: 20px; }
-    form input, form select, form button { padding: 10px; margin: 5px 0; font-size: 1em; }
-    .list-item { background: #eee; padding: 10px; margin: 5px 0; cursor: pointer; border-radius: 4px; }
-    .list-item:hover { background: #ddd; }
-    .transactions { margin-top: 20px; }
-    .transaction { border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-    .transaction:last-child { border-bottom: none; }
-    .transaction button { padding: 5px 10px; }
-    .hidden { display: none; }
-    .back-btn { margin-bottom: 20px; }
-  </style>
+  <!-- Link to the external CSS file -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <!-- Person List View -->
-    <div id="person-list-view">
-      <h1>Select a Person</h1>
+    <!-- Summary (Excel-like) View -->
+    <section id="summary-view">
+      <header>
+        <h1>People & Balances</h1>
+      </header>
+      <input type="text" id="search-bar" placeholder="Search by name...">
       <form id="add-person-form">
         <input type="text" id="new-person-name" placeholder="Enter new person's name" required>
         <button type="submit">Add Person</button>
       </form>
-      <div id="person-list">
-        <!-- List of persons will appear here -->
-      </div>
-    </div>
+      <table id="summary-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Balance ($)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Persons will be listed here -->
+        </tbody>
+      </table>
+    </section>
 
-    <!-- Transaction View -->
-    <div id="transaction-view" class="hidden">
-      <button id="back-to-persons" class="back-btn">← Back to Person List</button>
-      <h1 id="person-heading">Transactions for: </h1>
+    <!-- Transaction Detail View -->
+    <section id="transaction-view" class="hidden">
+      <button id="back-to-summary" class="back-btn">← Back to Summary</button>
+      <header>
+        <h1 id="person-heading">Transactions for: </h1>
+      </header>
       <h2>Current Balance: $<span id="balance">0.00</span></h2>
       <form id="transaction-form">
         <select id="transaction-type">
@@ -49,30 +49,65 @@
         <input type="text" id="description" placeholder="Description">
         <button type="submit">Add Transaction</button>
       </form>
-      <div class="transactions" id="transaction-list">
-        <!-- Transactions for this person will be listed here -->
+      <div id="transaction-list">
+        <!-- Detailed transactions will be listed here -->
       </div>
-    </div>
+    </section>
   </div>
 
   <script>
-    // Local Storage keys
-    const PERSONS_KEY = 'persons';
-    const TRANSACTIONS_KEY = 'transactions';
+    // API Endpoints (assumed to be backed by a Cloudflare Worker using KV storage)
+    // For local testing you may substitute localStorage calls
+    async function fetchPersons() {
+      const res = await fetch('/api/persons');
+      return await res.json();
+    }
+    async function addPerson(person) {
+      const res = await fetch('/api/persons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(person)
+      });
+      return await res.json();
+    }
+    async function fetchTransactions() {
+      const res = await fetch('/api/transactions');
+      return await res.json();
+    }
+    async function addTransaction(tx) {
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tx)
+      });
+      return await res.json();
+    }
+    async function updateTransaction(txId, data) {
+      const res = await fetch('/api/transactions/' + txId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    }
+    async function deleteTransactionAPI(txId) {
+      const res = await fetch('/api/transactions/' + txId, { method: 'DELETE' });
+      return await res.json();
+    }
 
-    // Global variables for current data and state
-    let persons = JSON.parse(localStorage.getItem(PERSONS_KEY)) || [];
-    let transactions = JSON.parse(localStorage.getItem(TRANSACTIONS_KEY)) || [];
-    let currentPerson = null; // holds the currently selected person
+    // Global state
+    let persons = [];
+    let transactions = [];
+    let currentPerson = null;
 
     // DOM Elements
-    const personListView = document.getElementById('person-list-view');
+    const summaryView = document.getElementById('summary-view');
     const transactionView = document.getElementById('transaction-view');
-    const personListEl = document.getElementById('person-list');
+    const summaryTableBody = document.getElementById('summary-table').querySelector('tbody');
     const addPersonForm = document.getElementById('add-person-form');
     const newPersonNameEl = document.getElementById('new-person-name');
-
-    const backBtn = document.getElementById('back-to-persons');
+    const searchBar = document.getElementById('search-bar');
+    const backBtn = document.getElementById('back-to-summary');
     const personHeading = document.getElementById('person-heading');
     const balanceEl = document.getElementById('balance');
     const transactionListEl = document.getElementById('transaction-list');
@@ -81,136 +116,157 @@
     const amountEl = document.getElementById('amount');
     const descriptionEl = document.getElementById('description');
 
-    // Save data to localStorage
-    function savePersons() {
-      localStorage.setItem(PERSONS_KEY, JSON.stringify(persons));
-    }
-    function saveTransactions() {
-      localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
+    async function loadData() {
+      persons = await fetchPersons();
+      transactions = await fetchTransactions();
+      renderSummary();
     }
 
-    // Render the list of persons
-    function renderPersonList() {
-      personListEl.innerHTML = '';
-      if (persons.length === 0) {
-        personListEl.innerHTML = "<p>No persons added yet.</p>";
+    // Render the summary table with search filtering
+    function renderSummary() {
+      summaryTableBody.innerHTML = '';
+      const searchQuery = searchBar.value.toLowerCase();
+      const filteredPersons = persons.filter(p => p.name.toLowerCase().includes(searchQuery));
+      if (filteredPersons.length === 0) {
+        summaryTableBody.innerHTML = "<tr><td colspan='3'>No persons found.</td></tr>";
         return;
       }
-      persons.forEach(person => {
-        const div = document.createElement('div');
-        div.classList.add('list-item');
-        div.textContent = person.name;
-        div.onclick = () => openTransactionView(person.id);
-        personListEl.appendChild(div);
-      });
-    }
-
-    // Render transactions for the current person (sorted by date: newest first)
-    function renderTransactions() {
-      transactionListEl.innerHTML = '';
-      const personTransactions = transactions.filter(tx => tx.personId === currentPerson.id);
-      
-      // Sort transactions by date in descending order (newest first)
-      personTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      personTransactions.forEach(tx => {
-        const txDiv = document.createElement('div');
-        txDiv.classList.add('transaction');
-        txDiv.innerHTML = `
-          <div>
-            <strong>${tx.type === 'payment' ? 'Payment' : 'Print'}</strong>: $${Number(tx.amount).toFixed(2)}
-            <br>
-            <small>${tx.description || ''}</small>
-            <br>
-            <small>${new Date(tx.date).toLocaleString()}</small>
-          </div>
-          <button data-id="${tx.id}" onclick="deleteTransaction(event)">Delete</button>
+      filteredPersons.forEach(person => {
+        const balance = calculateBalanceForPerson(person.id);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${person.name}</td>
+          <td>${balance.toFixed(2)}</td>
+          <td><button onclick="openTransactionView('${person.id}')">View Transactions</button></td>
         `;
-        transactionListEl.appendChild(txDiv);
+        summaryTableBody.appendChild(row);
       });
-      balanceEl.textContent = calculateBalance(personTransactions).toFixed(2);
     }
 
-    // Calculate balance for a set of transactions
-    function calculateBalance(personTransactions) {
+    // Calculate a person's balance. For print transactions, only add if not settled.
+    function calculateBalanceForPerson(personId) {
+      const personTransactions = transactions.filter(tx => tx.personId === personId);
       let balance = 0;
       personTransactions.forEach(tx => {
-        // Payment reduces balance, Print increases balance
         if (tx.type === 'payment') {
           balance -= Number(tx.amount);
         } else if (tx.type === 'print') {
-          balance += Number(tx.amount);
+          if (!tx.settled) {
+            balance += Number(tx.amount);
+          }
         }
       });
       return balance;
     }
 
-    // Open transaction view for a given person (by id)
-    function openTransactionView(personId) {
+    // Open the transaction view for a specific person
+    async function openTransactionView(personId) {
       currentPerson = persons.find(p => p.id === personId);
       personHeading.textContent = `Transactions for: ${currentPerson.name}`;
-      // Hide person list and show transaction view
-      personListView.classList.add('hidden');
+      summaryView.classList.add('hidden');
       transactionView.classList.remove('hidden');
       renderTransactions();
     }
+    window.openTransactionView = openTransactionView;
 
-    // Back to person list view
     backBtn.addEventListener('click', () => {
       currentPerson = null;
       transactionView.classList.add('hidden');
-      personListView.classList.remove('hidden');
-      renderPersonList();
+      summaryView.classList.remove('hidden');
+      loadData();
     });
 
-    // Add new person form submission
-    addPersonForm.addEventListener('submit', (e) => {
+    addPersonForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = newPersonNameEl.value.trim();
       if (!name) return;
-      // Create a person with a unique id (using timestamp)
-      const person = { id: Date.now().toString(), name };
-      persons.push(person);
-      savePersons();
+      const newPerson = { id: Date.now().toString(), name };
+      const added = await addPerson(newPerson);
+      persons.push(added);
       newPersonNameEl.value = '';
-      renderPersonList();
+      renderSummary();
     });
 
-    // Add new transaction for the current person
-    transactionForm.addEventListener('submit', (e) => {
+    transactionForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentPerson) return;
       const type = transactionTypeEl.value;
       const amount = amountEl.value;
       const description = descriptionEl.value;
       if (!amount) return;
-      // Create a transaction with a unique id
       const tx = {
         id: Date.now().toString(),
         personId: currentPerson.id,
         type,
         amount,
         description,
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        settled: false
       };
-      transactions.push(tx);
-      saveTransactions();
+      const addedTx = await addTransaction(tx);
+      transactions.push(addedTx);
       transactionForm.reset();
       renderTransactions();
+      renderSummary();
     });
 
-    // Delete a transaction (by transaction id)
-    function deleteTransaction(e) {
+    async function deleteTransaction(e) {
       const txId = e.target.getAttribute('data-id');
+      await deleteTransactionAPI(txId);
       transactions = transactions.filter(tx => tx.id !== txId);
-      saveTransactions();
       renderTransactions();
+      renderSummary();
     }
-    // Expose deleteTransaction globally (for inline onclick)
     window.deleteTransaction = deleteTransaction;
 
-    // Initial render of person list
-    renderPersonList();
+    // Toggle the "settled" status for a print transaction
+    async function toggleSettled(e, txId) {
+      const checkbox = e.target;
+      const settled = checkbox.checked;
+      await updateTransaction(txId, { settled });
+      const tx = transactions.find(t => t.id === txId);
+      if (tx) {
+        tx.settled = settled;
+      }
+      renderTransactions();
+      renderSummary();
+    }
+    window.toggleSettled = toggleSettled;
+
+    function renderTransactions() {
+      transactionListEl.innerHTML = '';
+      const personTransactions = transactions.filter(tx => tx.personId === currentPerson.id);
+      // Sort transactions (newest first)
+      personTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+      personTransactions.forEach(tx => {
+        let settledCheckbox = '';
+        if (tx.type === 'print') {
+          settledCheckbox = `<label class="settled-label">
+            <input type="checkbox" ${tx.settled ? 'checked' : ''} onchange="toggleSettled(event, '${tx.id}')"> Settled
+          </label>`;
+        }
+        const txDiv = document.createElement('div');
+        txDiv.classList.add('transaction');
+        txDiv.innerHTML = `
+          <div class="details">
+            <strong>${tx.type === 'payment' ? 'Payment' : 'Print'}</strong>: $${Number(tx.amount).toFixed(2)}<br>
+            <small>${tx.description || ''}</small><br>
+            <small>${new Date(tx.date).toLocaleString()}</small><br>
+            ${settledCheckbox}
+          </div>
+          <button data-id="${tx.id}" onclick="deleteTransaction(event)">Delete</button>
+        `;
+        transactionListEl.appendChild(txDiv);
+      });
+      balanceEl.textContent = calculateBalanceForPerson(currentPerson.id).toFixed(2);
+    }
+
+    searchBar.addEventListener('input', () => {
+      renderSummary();
+    });
+
+    // Initial load from Cloudflare storage via the API endpoints
+    loadData();
   </script>
 </body>
 </html>
