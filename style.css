@@ -115,24 +115,27 @@ tr:nth-child(even) {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  flex-wrap: nowrap; /* Prevent wrapping */
   padding: 16px;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
-  flex-wrap: nowrap; /* Prevent wrapping */
 }
 
 .transaction .details {
   flex: 1;
-  text-align: left;
   margin-right: 10px;
-  white-space: nowrap;      /* Prevent text wrap */
-  overflow: hidden;         /* Hide overflow */
-  text-overflow: ellipsis;  /* Show ellipsis if too long */
+  white-space: nowrap;      /* Keep text on one line */
+  overflow: hidden;         /* Hide extra text */
+  text-overflow: ellipsis;  /* Add ellipsis (...) if text is too long */
 }
 
 .transaction button {
-  flex-shrink: 0;  /* Don't allow the button to shrink */
+  flex-shrink: 0;  /* Prevent the button from shrinking or being pushed to a new line */
+  padding: 6px 10px;
+  font-size: 0.9rem;
 }
+
 
 /* Responsive Adjustments for Mobile */
 @media (max-width: 767px) {
