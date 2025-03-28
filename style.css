@@ -109,71 +109,45 @@ tr:nth-child(even) {
 }
 
 /* Transactions List */
+
 .transaction {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   padding: 16px;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
+  flex-wrap: nowrap; /* Prevent wrapping */
 }
 
 .transaction .details {
   flex: 1;
   text-align: left;
   margin-right: 10px;
+  white-space: nowrap;      /* Prevent text wrap */
+  overflow: hidden;         /* Hide overflow */
+  text-overflow: ellipsis;  /* Show ellipsis if too long */
 }
 
-/* Settled Checkbox Label */
-.settled-label {
-  font-size: 0.9rem;
-  color: #555;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 5px;
+.transaction button {
+  flex-shrink: 0;  /* Don't allow the button to shrink */
 }
 
-/* Utility Classes */
-.hidden {
-  display: none;
-}
-
-/* Responsive Design */
+/* Responsive Adjustments for Mobile */
 @media (max-width: 767px) {
-  body {
-    padding: 10px;
-  }
-  
-  .container {
-    padding: 15px;
-    margin: 10px;
-  }
-  
-  h1 {
-    font-size: 2rem;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-  }
-  
-  table th,
-  table td {
-    padding: 12px;
-  }
-  
-  /* Keep transactions side-by-side on mobile by maintaining flex-direction: row */
   .transaction {
-    flex-wrap: nowrap;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
   }
   
   .transaction .details {
-    font-size: 0.9rem;
+    font-size: 0.8rem; /* Slightly smaller text */
   }
   
   .transaction button {
-    padding: 6px 12px;
-    font-size: 0.9rem;
+    padding: 6px 10px;  /* Reduce padding for better fit */
+    font-size: 0.8rem;
   }
 }
+
