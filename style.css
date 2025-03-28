@@ -111,7 +111,6 @@ tr:nth-child(even) {
 /* Transactions List */
 .transaction {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   padding: 16px;
@@ -122,6 +121,7 @@ tr:nth-child(even) {
 .transaction .details {
   flex: 1;
   text-align: left;
+  margin-right: 10px;
 }
 
 /* Settled Checkbox Label */
@@ -140,7 +140,6 @@ tr:nth-child(even) {
 }
 
 /* Responsive Design */
-/* This media query ensures that the layout remains similar across devices */
 @media (max-width: 767px) {
   body {
     padding: 10px;
@@ -164,13 +163,17 @@ tr:nth-child(even) {
     padding: 12px;
   }
   
+  /* Keep transactions side-by-side on mobile by maintaining flex-direction: row */
   .transaction {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: nowrap;
+  }
+  
+  .transaction .details {
+    font-size: 0.9rem;
   }
   
   .transaction button {
-    align-self: flex-end;
-    margin-top: 10px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
   }
 }
