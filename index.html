@@ -56,14 +56,16 @@
   </div>
 
   <script>
-    // API Endpoints (assumed to be backed by a Cloudflare Worker using KV storage)
-    // For local testing you may substitute localStorage calls
+    // Point to your Worker subdomain:
+    const workerURL = "https://transaction-manager-worker.balgudeshubham64.workers.dev";
+
+    // API Endpoints using the Worker subdomain
     async function fetchPersons() {
-      const res = await fetch('/api/persons');
+      const res = await fetch(`${workerURL}/api/persons`);
       return await res.json();
     }
     async function addPerson(person) {
-      const res = await fetch('/api/persons', {
+      const res = await fetch(`${workerURL}/api/persons`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(person)
@@ -71,11 +73,11 @@
       return await res.json();
     }
     async function fetchTransactions() {
-      const res = await fetch('/api/transactions');
+      const res = await fetch(`${workerURL}/api/transactions`);
       return await res.json();
     }
     async function addTransaction(tx) {
-      const res = await fetch('/api/transactions', {
+      const res = await fetch(`${workerURL}/api/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(tx)
@@ -83,7 +85,7 @@
       return await res.json();
     }
     async function updateTransaction(txId, data) {
-      const res = await fetch('/api/transactions/' + txId, {
+      const res = await fetch(`${workerURL}/api/transactions/${txId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -91,7 +93,9 @@
       return await res.json();
     }
     async function deleteTransactionAPI(txId) {
-      const res = await fetch('/api/transactions/' + txId, { method: 'DELETE' });
+      const res = await fetch(`${workerURL}/api/transactions/${txId}`, {
+        method: 'DELETE'
+      });
       return await res.json();
     }
 
@@ -265,7 +269,7 @@
       renderSummary();
     });
 
-    // Initial load from Cloudflare storage via the API endpoints
+    // Initial load from Cloudflare Worker
     loadData();
   </script>
 </body>
