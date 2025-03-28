@@ -24,7 +24,7 @@
           <tr>
             <th>Name</th>
             <th>Balance ($)</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -56,7 +56,7 @@
   </div>
 
   <script>
-    // Point to your Worker subdomain:
+    // Set your Worker subdomain URL
     const workerURL = "https://transaction-manager-worker.balgudeshubham64.workers.dev";
 
     // API Endpoints using the Worker subdomain
@@ -69,6 +69,12 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(person)
+      });
+      return await res.json();
+    }
+    async function deletePerson(personId) {
+      const res = await fetch(`${workerURL}/api/persons/${personId}`, {
+        method: 'DELETE'
       });
       return await res.json();
     }
@@ -126,7 +132,7 @@
       renderSummary();
     }
 
-    // Render the summary table with search filtering
+    // Render the summary table with search filtering and delete buttons
     function renderSummary() {
       summaryTableBody.innerHTML = '';
       const searchQuery = searchBar.value.toLowerCase();
@@ -141,7 +147,10 @@
         row.innerHTML = `
           <td>${person.name}</td>
           <td>${balance.toFixed(2)}</td>
-          <td><button onclick="openTransactionView('${person.id}')">View Transactions</button></td>
+          <td>
+            <button onclick="openTransactionView('${person.id}')">View Transactions</button>
+            <button onclick="handleDeletePerson('${person.id}')">Delete</button>
+          </td>
         `;
         summaryTableBody.appendChild(row);
       });
@@ -191,6 +200,16 @@
       renderSummary();
     });
 
+    // Delete person function
+    async function handleDeletePerson(personId) {
+      if (confirm("Are you sure you want to delete this person?")) {
+        await deletePerson(personId);
+        persons = persons.filter(p => p.id !== personId);
+        renderSummary();
+      }
+    }
+    window.handleDeletePerson = handleDeletePerson;
+
     transactionForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentPerson) return;
@@ -214,6 +233,7 @@
       renderSummary();
     });
 
+    // Delete transaction function
     async function deleteTransaction(e) {
       const txId = e.target.getAttribute('data-id');
       await deleteTransactionAPI(txId);
