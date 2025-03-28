@@ -10,7 +10,7 @@ body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   background: #f2f4f8;
   color: #333;
-  line-height: 1.6;
+  line-height: 1.8;
   padding: 20px;
 }
 
@@ -26,8 +26,8 @@ body {
 
 /* Header */
 header {
-  margin-bottom: 20px;
   text-align: center;
+  margin-bottom: 20px;
 }
 
 h1 {
@@ -50,11 +50,11 @@ button {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  width: 100%;
 }
 
 input,
 select {
-  width: 100%;
   margin-bottom: 10px;
 }
 
@@ -99,7 +99,7 @@ table thead {
 
 table th,
 table td {
-  padding: 12px;
+  padding: 16px;
   border: 1px solid #ddd;
   text-align: center;
 }
@@ -111,15 +111,12 @@ tr:nth-child(even) {
 /* Transactions List */
 .transaction {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  padding: 16px;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
-}
-
-.transaction:last-child {
-  border-bottom: none;
 }
 
 .transaction .details {
@@ -142,10 +139,38 @@ tr:nth-child(even) {
   display: none;
 }
 
-/* Responsive Adjustments */
-@media (min-width: 768px) {
-  input,
-  select {
-    width: 50%;
+/* Responsive Design */
+/* This media query ensures that the layout remains similar across devices */
+@media (max-width: 767px) {
+  body {
+    padding: 10px;
+  }
+  
+  .container {
+    padding: 15px;
+    margin: 10px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  table th,
+  table td {
+    padding: 12px;
+  }
+  
+  .transaction {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .transaction button {
+    align-self: flex-end;
+    margin-top: 10px;
   }
 }
