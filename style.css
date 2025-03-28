@@ -1,67 +1,73 @@
-/* CSS Reset */
+/* RESET */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Base Styles */
+/* BASE STYLES */
 body {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: #f2f4f8;
   color: #333;
-  line-height: 1.8;
+  line-height: 1.6;
   padding: 20px;
 }
 
-/* Container */
+/* CONTAINER */
 .container {
-  max-width: 1000px;
-  margin: 20px auto;
+  max-width: 900px;
+  margin: 0 auto;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 20px;
 }
 
-/* Header */
+/* HEADERS */
 header {
   text-align: center;
   margin-bottom: 20px;
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin-bottom: 10px;
   color: #2c3e50;
 }
 
 h2 {
-  font-size: 1.8rem;
-  margin-bottom: 15px;
+  font-size: 1.4rem;
+  margin-bottom: 10px;
   color: #34495e;
 }
 
-/* Form Elements */
-input,
-select,
-button {
-  font-size: 1rem;
+/* FORMS & INPUTS */
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  flex: 1;
+  min-width: 180px;
   padding: 10px;
+  font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  width: 100%;
-}
-
-input,
-select {
-  margin-bottom: 10px;
 }
 
 button {
+  padding: 10px 16px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
   background: #3498db;
   color: #fff;
-  border: none;
   cursor: pointer;
   transition: background 0.3s ease;
 }
@@ -70,7 +76,7 @@ button:hover {
   background: #2980b9;
 }
 
-/* Specific Buttons */
+/* BACK BUTTON */
 .back-btn {
   background: #7f8c8d;
   margin-bottom: 15px;
@@ -80,12 +86,13 @@ button:hover {
   background: #636e72;
 }
 
-/* Search Bar */
+/* SEARCH BAR */
 #search-bar {
-  margin-bottom: 20px;
+  flex: 1;
+  margin-bottom: 0; /* Already included in form's margin-bottom */
 }
 
-/* Table Styling */
+/* TABLE STYLING */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -95,62 +102,102 @@ table {
 table thead {
   background: #3498db;
   color: #fff;
+  text-transform: uppercase;
+  font-size: 0.9rem;
 }
 
 table th,
 table td {
-  padding: 16px;
+  padding: 12px;
   border: 1px solid #ddd;
   text-align: center;
+  vertical-align: middle;
 }
 
 tr:nth-child(even) {
   background: #f9f9f9;
 }
 
-/* Transactions List */
-
+/* TRANSACTION LIST */
 .transaction {
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  flex-wrap: nowrap; /* Prevent wrapping */
-  padding: 16px;
+  padding: 14px;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
 }
 
 .transaction .details {
   flex: 1;
+  text-align: left;
   margin-right: 10px;
-  white-space: nowrap;      /* Keep text on one line */
-  overflow: hidden;         /* Hide extra text */
-  text-overflow: ellipsis;  /* Add ellipsis (...) if text is too long */
 }
 
 .transaction button {
-  flex-shrink: 0;  /* Prevent the button from shrinking or being pushed to a new line */
-  padding: 6px 10px;
+  flex-shrink: 0;
   font-size: 0.9rem;
+  padding: 8px 12px;
 }
 
+/* SETTLED CHECKBOX LABEL */
+.settled-label {
+  font-size: 0.9rem;
+  color: #555;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
 
-/* Responsive Adjustments for Mobile */
-@media (max-width: 767px) {
+/* UTILITY */
+.hidden {
+  display: none;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  
+  .container {
+    padding: 15px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  form {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Table adjustments on mobile */
+  table th,
+  table td {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+  
+  /* Transaction row stays side by side, just smaller */
   .transaction {
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
+    flex-wrap: nowrap;
   }
-  
   .transaction .details {
-    font-size: 0.8rem; /* Slightly smaller text */
+    font-size: 0.9rem;
+    margin-right: 5px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
-  
   .transaction button {
-    padding: 6px 10px;  /* Reduce padding for better fit */
+    padding: 6px 10px;
     font-size: 0.8rem;
   }
 }
-
