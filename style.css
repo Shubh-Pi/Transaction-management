@@ -125,11 +125,12 @@ tr:nth-child(even) {
 .transaction {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 1vw;
   border-bottom: 1px solid #eee;
   margin-bottom: 1vh;
+  margin-right: 5px;
 }
 
 .transaction .details {
