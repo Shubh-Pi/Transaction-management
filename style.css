@@ -11,34 +11,35 @@ body {
   background: #f2f4f8;
   color: #333;
   line-height: 1.6;
-  padding: 20px;
+  padding: 2vw;
 }
 
 /* CONTAINER */
 .container {
   max-width: 900px;
+  width: 90%;
   margin: 0 auto;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  padding: 2vw;
 }
 
 /* HEADERS */
 header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 2vh;
 }
 
 h1 {
   font-size: 2rem;
-  margin-bottom: 10px;
+  margin-bottom: 1vh;
   color: #2c3e50;
 }
 
 h2 {
   font-size: 1.4rem;
-  margin-bottom: 10px;
+  margin-bottom: 1vh;
   color: #34495e;
 }
 
@@ -46,8 +47,9 @@ h2 {
 form {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 1vw;
+  margin-bottom: 2vh;
+  align-items: center;
 }
 
 input[type="text"],
@@ -55,14 +57,14 @@ input[type="number"],
 select {
   flex: 1;
   min-width: 180px;
-  padding: 10px;
+  padding: 0.8vw;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
 
 button {
-  padding: 10px 16px;
+  padding: 0.8vw 1.6vw;
   font-size: 1rem;
   border: none;
   border-radius: 4px;
@@ -70,6 +72,7 @@ button {
   color: #fff;
   cursor: pointer;
   transition: background 0.3s ease;
+  white-space: nowrap;
 }
 
 button:hover {
@@ -79,7 +82,7 @@ button:hover {
 /* BACK BUTTON */
 .back-btn {
   background: #7f8c8d;
-  margin-bottom: 15px;
+  margin-bottom: 2vh;
 }
 
 .back-btn:hover {
@@ -89,14 +92,14 @@ button:hover {
 /* SEARCH BAR */
 #search-bar {
   flex: 1;
-  margin-bottom: 0; /* Already included in form's margin-bottom */
+  margin-bottom: 1vw;
 }
 
 /* TABLE STYLING */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-bottom: 2vh;
 }
 
 table thead {
@@ -108,7 +111,7 @@ table thead {
 
 table th,
 table td {
-  padding: 12px;
+  padding: 1vw;
   border: 1px solid #ddd;
   text-align: center;
   vertical-align: middle;
@@ -121,23 +124,27 @@ tr:nth-child(even) {
 /* TRANSACTION LIST */
 .transaction {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 14px;
+  padding: 1vw;
   border-bottom: 1px solid #eee;
-  margin-bottom: 10px;
+  margin-bottom: 1vh;
 }
 
 .transaction .details {
   flex: 1;
   text-align: left;
-  margin-right: 10px;
+  margin-right: 1vw;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .transaction button {
   flex-shrink: 0;
   font-size: 0.9rem;
-  padding: 8px 12px;
+  padding: 0.5vw 1vw;
 }
 
 /* SETTLED CHECKBOX LABEL */
@@ -146,8 +153,8 @@ tr:nth-child(even) {
   color: #555;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  margin-top: 5px;
+  gap: 0.5vw;
+  margin-top: 0.5vh;
 }
 
 /* UTILITY */
@@ -158,11 +165,11 @@ tr:nth-child(even) {
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
   body {
-    padding: 10px;
+    padding: 5vw;
   }
   
   .container {
-    padding: 15px;
+    padding: 5vw;
   }
   
   h1 {
@@ -170,34 +177,38 @@ tr:nth-child(even) {
   }
   
   h2 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
   
   form {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  /* Table adjustments on mobile */
-  table th,
-  table td {
-    font-size: 0.9rem;
-    padding: 10px;
-  }
-  
-  /* Transaction row stays side by side, just smaller */
-  .transaction {
+    /* Maintain side-by-side layout if possible */
     flex-wrap: nowrap;
   }
-  .transaction .details {
+  
+  input[type="text"],
+  input[type="number"],
+  select {
+    padding: 1vw;
     font-size: 0.9rem;
-    margin-right: 5px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
   }
+  
+  button {
+    padding: 1vw 1.5vw;
+    font-size: 0.9rem;
+  }
+  
+  table th,
+  table td {
+    padding: 1vw;
+    font-size: 0.9rem;
+  }
+  
+  .transaction .details {
+    font-size: 0.85rem;
+  }
+  
   .transaction button {
-    padding: 6px 10px;
+    padding: 0.5vw 1vw;
     font-size: 0.8rem;
   }
 }
