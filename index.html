@@ -53,7 +53,7 @@
       <form id="transaction-form">
         <select id="transaction-type">
           <option value="payment">Payment to Shop Owner</option>
-          <option value="print">Print Usage</option>
+          <option value="received">Received Payment</option>
         </select>
         <input type="number" id="amount" placeholder="Amount" required step="0.01">
         <input type="text" id="description" placeholder="Description">
@@ -248,17 +248,15 @@
       });
     }
 
-    // Calculate a person's balance. For print transactions, only add if not settled.
+    // Calculate a person's balance
     function calculateBalanceForPerson(personId) {
       const personTransactions = transactions.filter(tx => tx.personId === personId);
       let balance = 0;
       personTransactions.forEach(tx => {
         if (tx.type === 'payment') {
           balance -= Number(tx.amount);
-        } else if (tx.type === 'print') {
-          if (!tx.settled) {
-            balance += Number(tx.amount);
-          }
+        } else if (tx.type === 'received') {
+          balance += Number(tx.amount);
         }
       });
       return balance;
@@ -331,8 +329,7 @@
           type,
           amount,
           description,
-          date: new Date().toISOString(),
-          settled: false
+          date: new Date().toISOString()
         };
         await addTransaction(tx);
         transactionForm.reset();
@@ -359,22 +356,6 @@
     }
     window.deleteTransaction = deleteTransaction;
 
-    // Toggle the "settled" status for a print transaction
-    async function toggleSettled(e, txId) {
-      const checkbox = e.target;
-      const settled = checkbox.checked;
-      showLoading();
-      try {
-        await updateTransaction(txId, { settled });
-        transactions = await fetchTransactions();
-        renderTransactions();
-      } catch (error) {
-        console.error('Failed to update transaction:', error);
-        checkbox.checked = !settled;
-      }
-      hideLoading();
-    }
-    window.toggleSettled = toggleSettled;
 
     function renderTransactions() {
       transactionListEl.innerHTML = '';
@@ -382,20 +363,14 @@
       // Sort transactions (newest first)
       personTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
       personTransactions.forEach(tx => {
-        let settledCheckbox = '';
-        if (tx.type === 'print') {
-          settledCheckbox = `<label class="settled-label">
-            <input type="checkbox" ${tx.settled ? 'checked' : ''} onchange="toggleSettled(event, '${tx.id}')"> Settled
-          </label>`;
-        }
         const txDiv = document.createElement('div');
         txDiv.classList.add('transaction');
+        const txTypeLabel = tx.type === 'payment' ? 'Payment to Shop Owner' : 'Received Payment';
         txDiv.innerHTML = `
           <div class="details">
-            <strong>${tx.type === 'payment' ? 'Payment' : 'Print'}</strong>: $${Number(tx.amount).toFixed(2)}<br>
+            <strong>${txTypeLabel}</strong>: $${Number(tx.amount).toFixed(2)}<br>
             <small>${tx.description || ''}</small><br>
-            <small>${new Date(tx.date).toLocaleString()}</small><br>
-            ${settledCheckbox}
+            <small>${new Date(tx.date).toLocaleString()}</small>
           </div>
           <button data-id="${tx.id}" onclick="deleteTransaction(event)">Delete</button>
         `;
