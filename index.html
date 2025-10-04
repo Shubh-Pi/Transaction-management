@@ -8,13 +8,23 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Fixed Header -->
+  <header class="fixed-header">
+    <h1>Transaction Manager</h1>
+  </header>
+
   <div class="container">
     <!-- Summary (Excel-like) View -->
     <section id="summary-view">
-      <header>
-        <h1>People & Balances</h1>
-      </header>
-      <input type="text" id="search-bar" placeholder="Search by name...">
+      <div class="action-bar">
+        <input type="text" id="search-bar" placeholder="Search by name...">
+        <button id="refresh-btn" class="refresh-btn" title="Refresh data">🔄 Refresh</button>
+      </div>
       <form id="add-person-form">
         <input type="text" id="new-person-name" placeholder="Enter new person's name" required>
         <button type="submit">Add Person</button>
@@ -59,50 +69,129 @@
     // Set your Worker subdomain URL
     const workerURL = "https://transaction-manager-worker.balgudeshubham64.workers.dev";
 
-    // API Endpoints using the Worker subdomain
+    // Loading overlay helper
+    const loadingOverlay = document.getElementById('loading-overlay');
+    function showLoading() {
+      loadingOverlay.classList.remove('hidden');
+    }
+    function hideLoading() {
+      loadingOverlay.classList.add('hidden');
+    }
+
+    // API Endpoints using the Worker subdomain with error handling
     async function fetchPersons() {
-      const res = await fetch(`${workerURL}/api/persons`);
-      return await res.json();
+      try {
+        console.log('Fetching persons from KV...');
+        const res = await fetch(`${workerURL}/api/persons`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log('Persons fetched:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching persons:', error);
+        alert('Failed to load persons. Please try again.');
+        return [];
+      }
     }
     async function addPerson(person) {
-      const res = await fetch(`${workerURL}/api/persons`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(person)
-      });
-      return await res.json();
+      try {
+        console.log('Adding person to KV:', person);
+        const res = await fetch(`${workerURL}/api/persons`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(person)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log('Person added:', data);
+        return data;
+      } catch (error) {
+        console.error('Error adding person:', error);
+        alert('Failed to add person. Please try again.');
+        throw error;
+      }
     }
     async function deletePerson(personId) {
-      const res = await fetch(`${workerURL}/api/persons/${personId}`, {
-        method: 'DELETE'
-      });
-      return await res.json();
+      try {
+        console.log('Deleting person from KV:', personId);
+        const res = await fetch(`${workerURL}/api/persons/${personId}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log('Person deleted:', data);
+        return data;
+      } catch (error) {
+        console.error('Error deleting person:', error);
+        alert('Failed to delete person. Please try again.');
+        throw error;
+      }
     }
     async function fetchTransactions() {
-      const res = await fetch(`${workerURL}/api/transactions`);
-      return await res.json();
+      try {
+        console.log('Fetching transactions from KV...');
+        const res = await fetch(`${workerURL}/api/transactions`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log('Transactions fetched:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        alert('Failed to load transactions. Please try again.');
+        return [];
+      }
     }
     async function addTransaction(tx) {
-      const res = await fetch(`${workerURL}/api/transactions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tx)
-      });
-      return await res.json();
+      try {
+        console.log('Adding transaction to KV:', tx);
+        const res = await fetch(`${workerURL}/api/transactions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tx)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log('Transaction added:', data);
+        return data;
+      } catch (error) {
+        console.error('Error adding transaction:', error);
+        alert('Failed to add transaction. Please try again.');
+        throw error;
+      }
     }
     async function updateTransaction(txId, data) {
-      const res = await fetch(`${workerURL}/api/transactions/${txId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return await res.json();
+      try {
+        console.log('Updating transaction in KV:', txId, data);
+        const res = await fetch(`${workerURL}/api/transactions/${txId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const result = await res.json();
+        console.log('Transaction updated:', result);
+        return result;
+      } catch (error) {
+        console.error('Error updating transaction:', error);
+        alert('Failed to update transaction. Please try again.');
+        throw error;
+      }
     }
     async function deleteTransactionAPI(txId) {
-      const res = await fetch(`${workerURL}/api/transactions/${txId}`, {
-        method: 'DELETE'
-      });
-      return await res.json();
+      try {
+        console.log('Deleting transaction from KV:', txId);
+        const res = await fetch(`${workerURL}/api/transactions/${txId}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log('Transaction deleted:', data);
+        return data;
+      } catch (error) {
+        console.error('Error deleting transaction:', error);
+        alert('Failed to delete transaction. Please try again.');
+        throw error;
+      }
     }
 
     // Global state
@@ -117,6 +206,7 @@
     const addPersonForm = document.getElementById('add-person-form');
     const newPersonNameEl = document.getElementById('new-person-name');
     const searchBar = document.getElementById('search-bar');
+    const refreshBtn = document.getElementById('refresh-btn');
     const backBtn = document.getElementById('back-to-summary');
     const personHeading = document.getElementById('person-heading');
     const balanceEl = document.getElementById('balance');
@@ -127,9 +217,11 @@
     const descriptionEl = document.getElementById('description');
 
     async function loadData() {
+      showLoading();
       persons = await fetchPersons();
       transactions = await fetchTransactions();
       renderSummary();
+      hideLoading();
     }
 
     // Render the summary table with search filtering and delete buttons
@@ -182,30 +274,44 @@
     }
     window.openTransactionView = openTransactionView;
 
-    backBtn.addEventListener('click', () => {
+    backBtn.addEventListener('click', async () => {
       currentPerson = null;
       transactionView.classList.add('hidden');
       summaryView.classList.remove('hidden');
-      loadData();
+      await loadData();
+    });
+
+    refreshBtn.addEventListener('click', async () => {
+      await loadData();
     });
 
     addPersonForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = newPersonNameEl.value.trim();
       if (!name) return;
-      const newPerson = { id: Date.now().toString(), name };
-      const added = await addPerson(newPerson);
-      persons.push(added);
-      newPersonNameEl.value = '';
-      renderSummary();
+      showLoading();
+      try {
+        const newPerson = { id: Date.now().toString(), name };
+        await addPerson(newPerson);
+        newPersonNameEl.value = '';
+        await loadData();
+      } catch (error) {
+        console.error('Failed to add person:', error);
+      }
+      hideLoading();
     });
 
     // Delete person function
     async function handleDeletePerson(personId) {
       if (confirm("Are you sure you want to delete this person?")) {
-        await deletePerson(personId);
-        persons = persons.filter(p => p.id !== personId);
-        renderSummary();
+        showLoading();
+        try {
+          await deletePerson(personId);
+          await loadData();
+        } catch (error) {
+          console.error('Failed to delete person:', error);
+        }
+        hideLoading();
       }
     }
     window.handleDeletePerson = handleDeletePerson;
@@ -217,29 +323,39 @@
       const amount = amountEl.value;
       const description = descriptionEl.value;
       if (!amount) return;
-      const tx = {
-        id: Date.now().toString(),
-        personId: currentPerson.id,
-        type,
-        amount,
-        description,
-        date: new Date().toISOString(),
-        settled: false
-      };
-      const addedTx = await addTransaction(tx);
-      transactions.push(addedTx);
-      transactionForm.reset();
-      renderTransactions();
-      renderSummary();
+      showLoading();
+      try {
+        const tx = {
+          id: Date.now().toString(),
+          personId: currentPerson.id,
+          type,
+          amount,
+          description,
+          date: new Date().toISOString(),
+          settled: false
+        };
+        await addTransaction(tx);
+        transactionForm.reset();
+        transactions = await fetchTransactions();
+        renderTransactions();
+      } catch (error) {
+        console.error('Failed to add transaction:', error);
+      }
+      hideLoading();
     });
 
     // Delete transaction function
     async function deleteTransaction(e) {
       const txId = e.target.getAttribute('data-id');
-      await deleteTransactionAPI(txId);
-      transactions = transactions.filter(tx => tx.id !== txId);
-      renderTransactions();
-      renderSummary();
+      showLoading();
+      try {
+        await deleteTransactionAPI(txId);
+        transactions = await fetchTransactions();
+        renderTransactions();
+      } catch (error) {
+        console.error('Failed to delete transaction:', error);
+      }
+      hideLoading();
     }
     window.deleteTransaction = deleteTransaction;
 
@@ -247,13 +363,16 @@
     async function toggleSettled(e, txId) {
       const checkbox = e.target;
       const settled = checkbox.checked;
-      await updateTransaction(txId, { settled });
-      const tx = transactions.find(t => t.id === txId);
-      if (tx) {
-        tx.settled = settled;
+      showLoading();
+      try {
+        await updateTransaction(txId, { settled });
+        transactions = await fetchTransactions();
+        renderTransactions();
+      } catch (error) {
+        console.error('Failed to update transaction:', error);
+        checkbox.checked = !settled;
       }
-      renderTransactions();
-      renderSummary();
+      hideLoading();
     }
     window.toggleSettled = toggleSettled;
 
