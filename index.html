@@ -376,7 +376,7 @@
 
       transactions.forEach(tx => {
         const amount = Number(tx.amount);
-        if (tx.type === 'received') {
+        if (tx.type === 'received' || tx.type === 'print') {
           totalReceived += amount;
         } else if (tx.type === 'payment') {
           totalPaid += amount;
@@ -394,7 +394,7 @@
       personTransactions.forEach(tx => {
         if (tx.type === 'payment') {
           balance -= Number(tx.amount);
-        } else if (tx.type === 'received') {
+        } else if (tx.type === 'received' || tx.type === 'print') {
           balance += Number(tx.amount);
         }
       });
@@ -482,7 +482,8 @@
 
       sortedTransactions.forEach(tx => {
         const txDiv = document.createElement('div');
-        txDiv.className = `transaction-card card ${tx.type}`;
+        const txType = (tx.type === 'print') ? 'received' : tx.type;
+        txDiv.className = `transaction-card card ${txType}`;
         const txTypeLabel = tx.type === 'payment' ? 'Payment to Shop Owner' : 'Received Payment';
         const txIcon = tx.type === 'payment' ? '💳' : '💰';
 
@@ -490,7 +491,7 @@
           <div class="transaction-icon">${txIcon}</div>
           <div class="transaction-details">
             <div class="transaction-type">${txTypeLabel}</div>
-            <div class="transaction-amount ${tx.type}">$${Number(tx.amount).toFixed(2)}</div>
+            <div class="transaction-amount ${txType}">$${Number(tx.amount).toFixed(2)}</div>
             ${tx.description ? `<div class="transaction-description">${tx.description}</div>` : ''}
             <div class="transaction-date">${new Date(tx.date).toLocaleString()}</div>
           </div>
