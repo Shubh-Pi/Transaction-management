@@ -606,7 +606,18 @@
       showLoading();
       try {
         await deletePerson(personId);
-        await loadData();
+
+        // Give KV store a moment to propagate the deletion
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Reload all data to ensure analytics are updated
+        persons = await fetchPersons();
+        transactions = await fetchTransactions();
+
+        // Update all UI components
+        renderAnalytics();
+        renderPersons();
+
         showToast('Person deleted successfully', 'success');
       } catch (error) {
         showToast('Failed to delete person', 'error');
