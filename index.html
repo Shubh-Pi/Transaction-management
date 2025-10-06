@@ -109,7 +109,20 @@
 
       <div class="transaction-header">
         <h2 id="person-heading">Transactions</h2>
-        <h3 class="balance-display">Balance: <span id="balance" class="balance-amount">Rs. 0.00</span></h3>
+        <div class="person-stats">
+          <div class="stat-item">
+            <span class="stat-label">Total Received:</span>
+            <span id="person-received" class="stat-value positive">Rs. 0.00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total Paid:</span>
+            <span id="person-paid" class="stat-value negative">Rs. 0.00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Balance:</span>
+            <span id="balance" class="balance-amount">Rs. 0.00</span>
+          </div>
+        </div>
       </div>
 
       <form id="transaction-form" class="card form-card">
@@ -474,9 +487,31 @@
       const personTransactions = transactions.filter(tx => tx.personId === currentPerson.id);
       const sortedTransactions = sortTransactions(personTransactions);
 
+      let personReceived = 0;
+      let personPaid = 0;
+      let balance = 0;
+
+      personTransactions.forEach(tx => {
+        const amount = Number(tx.amount);
+        if (tx.type === 'received' || tx.type === 'print') {
+          personReceived += amount;
+          balance += amount;
+        } else if (tx.type === 'payment') {
+          personPaid += amount;
+          balance -= amount;
+        }
+      });
+
+      const personReceivedEl = document.getElementById('person-received');
+      const personPaidEl = document.getElementById('person-paid');
+
+      if (personReceivedEl) personReceivedEl.textContent = `Rs. ${personReceived.toFixed(2)}`;
+      if (personPaidEl) personPaidEl.textContent = `Rs. ${personPaid.toFixed(2)}`;
+      balanceEl.textContent = `Rs. ${balance.toFixed(2)}`;
+      balanceEl.className = `balance-amount ${balance >= 0 ? 'positive' : 'negative'}`;
+
       if (sortedTransactions.length === 0) {
         transactionListEl.innerHTML = '<div class="empty-state">No transactions yet.</div>';
-        balanceEl.textContent = 'Rs. 0.00';
         return;
       }
 
@@ -501,10 +536,6 @@
         `;
         transactionListEl.appendChild(txDiv);
       });
-
-      const balance = calculateBalanceForPerson(currentPerson.id);
-      balanceEl.textContent = `Rs. ${balance.toFixed(2)}`;
-      balanceEl.className = `balance-amount ${balance >= 0 ? 'positive' : 'negative'}`;
     }
 
     // CSV Export
