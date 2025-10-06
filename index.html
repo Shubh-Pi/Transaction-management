@@ -200,6 +200,7 @@
     const exportCsvBtn = document.getElementById('export-csv-btn');
 
     // Analytics Elements
+    const analyticsView = document.getElementById('analytics-view');
     const totalPersonsEl = document.getElementById('total-persons');
     const totalTransactionsEl = document.getElementById('total-transactions');
     const totalReceivedEl = document.getElementById('total-received');
@@ -453,6 +454,7 @@
     async function openTransactionView(personId) {
       currentPerson = persons.find(p => p.id === personId);
       personHeading.textContent = `Transactions for: ${currentPerson.name}`;
+      analyticsView.classList.add('hidden');
       summaryView.classList.add('hidden');
       transactionView.classList.remove('hidden');
       renderTransactions();
@@ -573,6 +575,7 @@
     backBtn.addEventListener('click', async () => {
       currentPerson = null;
       transactionView.classList.add('hidden');
+      analyticsView.classList.remove('hidden');
       summaryView.classList.remove('hidden');
       await loadData();
     });
