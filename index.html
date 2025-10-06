@@ -58,14 +58,14 @@
         <div class="analytics-card">
           <div class="analytics-icon">📈</div>
           <div class="analytics-info">
-            <div class="analytics-value" id="total-received">$0.00</div>
+            <div class="analytics-value" id="total-received">Rs. 0.00</div>
             <div class="analytics-label">Total Received</div>
           </div>
         </div>
         <div class="analytics-card">
           <div class="analytics-icon">📉</div>
           <div class="analytics-info">
-            <div class="analytics-value" id="total-paid">$0.00</div>
+            <div class="analytics-value" id="total-paid">Rs. 0.00</div>
             <div class="analytics-label">Total Paid</div>
           </div>
         </div>
@@ -109,7 +109,7 @@
 
       <div class="transaction-header">
         <h2 id="person-heading">Transactions</h2>
-        <h3 class="balance-display">Balance: <span id="balance" class="balance-amount">$0.00</span></h3>
+        <h3 class="balance-display">Balance: <span id="balance" class="balance-amount">Rs. 0.00</span></h3>
       </div>
 
       <form id="transaction-form" class="card form-card">
@@ -120,7 +120,7 @@
             <option value="payment">Payment to Shop Owner</option>
             <option value="received">Received Payment</option>
           </select>
-          <input type="number" id="amount" class="form-input" placeholder="Amount ($)" required step="0.01" min="0.01">
+          <input type="number" id="amount" class="form-input" placeholder="Amount (Rs.)" required step="0.01" min="0.01">
           <input type="text" id="description" class="form-input" placeholder="Description (optional)">
           <button type="submit" class="btn btn-primary">Add Transaction</button>
         </div>
@@ -383,8 +383,8 @@
         }
       });
 
-      totalReceivedEl.textContent = `$${totalReceived.toFixed(2)}`;
-      totalPaidEl.textContent = `$${totalPaid.toFixed(2)}`;
+      totalReceivedEl.textContent = `Rs. ${totalReceived.toFixed(2)}`;
+      totalPaidEl.textContent = `Rs. ${totalPaid.toFixed(2)}`;
     }
 
     // Balance Calculation
@@ -421,7 +421,7 @@
         card.innerHTML = `
           <div class="person-info">
             <h3 class="person-name">${person.name}</h3>
-            <div class="person-balance ${balanceClass}">$${balance.toFixed(2)}</div>
+            <div class="person-balance ${balanceClass}">Rs. ${balance.toFixed(2)}</div>
           </div>
           <div class="person-actions">
             <button onclick="openTransactionView('${person.id}')" class="btn btn-primary btn-sm">
@@ -476,7 +476,7 @@
 
       if (sortedTransactions.length === 0) {
         transactionListEl.innerHTML = '<div class="empty-state">No transactions yet.</div>';
-        balanceEl.textContent = '$0.00';
+        balanceEl.textContent = 'Rs. 0.00';
         return;
       }
 
@@ -491,7 +491,7 @@
           <div class="transaction-icon">${txIcon}</div>
           <div class="transaction-details">
             <div class="transaction-type">${txTypeLabel}</div>
-            <div class="transaction-amount ${txType}">$${Number(tx.amount).toFixed(2)}</div>
+            <div class="transaction-amount ${txType}">Rs. ${Number(tx.amount).toFixed(2)}</div>
             ${tx.description ? `<div class="transaction-description">${tx.description}</div>` : ''}
             <div class="transaction-date">${new Date(tx.date).toLocaleString()}</div>
           </div>
@@ -503,7 +503,7 @@
       });
 
       const balance = calculateBalanceForPerson(currentPerson.id);
-      balanceEl.textContent = `$${balance.toFixed(2)}`;
+      balanceEl.textContent = `Rs. ${balance.toFixed(2)}`;
       balanceEl.className = `balance-amount ${balance >= 0 ? 'positive' : 'negative'}`;
     }
 
